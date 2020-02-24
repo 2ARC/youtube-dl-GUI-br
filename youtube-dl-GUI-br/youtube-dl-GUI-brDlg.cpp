@@ -53,7 +53,8 @@ END_MESSAGE_MAP()
 
 CyoutubedlGUIbrDlg::CyoutubedlGUIbrDlg(CWnd* pParent /*=nullptr*/)
 	: CDialogEx(IDD_YOUTUBEDLGUIBR_DIALOG, pParent)
-	, url(_T(""))
+	, m_url(_T(""))
+	, m_pasta(_T(""))
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -61,9 +62,11 @@ CyoutubedlGUIbrDlg::CyoutubedlGUIbrDlg(CWnd* pParent /*=nullptr*/)
 void CyoutubedlGUIbrDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
-	DDX_Text(pDX, IDC_EDIT1, url);
-	DDX_Control(pDX, IDC_CHECK1, Audio);
-	DDX_Control(pDX, IDC_CHECK2, Lista);
+	DDX_Text(pDX, IDC_EDIT1, m_url);
+	DDX_Control(pDX, IDC_CHECK1, m_audio);
+	DDX_Control(pDX, IDC_CHECK2, m_lista);
+	DDX_Text(pDX, IDC_EDIT2, m_pasta);
+	DDX_Control(pDX, IDC_CHECK3, m_legenda);
 }
 
 BEGIN_MESSAGE_MAP(CyoutubedlGUIbrDlg, CDialogEx)
@@ -75,6 +78,7 @@ BEGIN_MESSAGE_MAP(CyoutubedlGUIbrDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON2, &CyoutubedlGUIbrDlg::OnBnClickedButton2)
 	ON_BN_CLICKED(IDC_CHECK1, &CyoutubedlGUIbrDlg::OnBnClickedCheck1)
 	ON_BN_CLICKED(IDC_CHECK2, &CyoutubedlGUIbrDlg::OnBnClickedCheck2)
+	ON_BN_CLICKED(IDC_CHECK3, &CyoutubedlGUIbrDlg::OnBnClickedCheck3)
 END_MESSAGE_MAP()
 
 
@@ -175,19 +179,19 @@ HCURSOR CyoutubedlGUIbrDlg::OnQueryDragIcon()
 void CyoutubedlGUIbrDlg::OnBnClickedOk()
 {
 	// TODO: Adicione seu código de manipulador de notificações de controle aqui
-	// Mantém foco na caixa de texto para o endereço da Internet
-	HWND hWnd;
-	GetDlgItem(IDC_EDIT1, &hWnd);
-	::PostMessage(GetSafeHwnd(), WM_NEXTDLGCTL, (WPARAM)hWnd, TRUE);
+	// Passa o que foi colado no controle (p.ex: youtube.com) para à variável mebro do controle
+	UpdateData(TRUE);
 	// String contendo o que eu acredito ser o mínimo para um uso suave do programa
-	CString str = _T(" --restrict-filenames --mark-watched --no-warnings --ignore-errors --console-title --youtube-skip-dash-manifest -o \"\\Arquivos_baixados\\%(title)s.%(ext)s\" ");
-	// Uma variável para dois controles. Checa se o usuário selecionou apenas audio e/ou lista
+	CString str = _T(" --restrict-filenames --mark-watched --no-warnings --ignore-errors --console-title --youtube-skip-dash-manifest -o \"\\");
+	str += m_pasta; // Subm_pasta
+	str += _T("\\%(title)s.%(ext)s\" ");
+	// Uma variável para dois controles. Checa se o usuário selecionou apenas m_audio e/ou m_lista
 	bool foiChecado;
 	// Audio?
 	CButton* m_ctlCheck1 = (CButton*)GetDlgItem(IDC_CHECK1);
 	foiChecado = (m_ctlCheck1->GetCheck());
 	if (foiChecado == true) {
-		str += " -x --audio-format mp3 ";
+		str += " -x --m_audio-format mp3 ";
 	}
 	// Lista?
 	CButton* m_ctlCheck2 = (CButton*)GetDlgItem(IDC_CHECK2);
@@ -198,23 +202,31 @@ void CyoutubedlGUIbrDlg::OnBnClickedOk()
 	else {
 		str += " --no-playlist ";
 	}
-	// Passa o que foi colado no controle (p.ex: youtube.com) para à variável mebro do controle
-	UpdateData(TRUE);
+	// Legenda?
+	CButton* m_ctlCheck3 = (CButton*)GetDlgItem(IDC_CHECK3);
+	foiChecado = (m_ctlCheck3->GetCheck());
+	if (foiChecado == true) {
+		str += " --write-auto-sub --sub-format srt ";
+	}
 	// Atualiza a variável membro a partir da variável temporária
-	str += url;
+	str += m_url;
 	// Passa os argumentos e executa via terminal o programa youtube-dl.exe
 	ShellExecute(NULL, _T("open"), _T("youtube-dl.exe"), str, _T(""), SW_SHOW);
 	// Avisa para não fechar a "tela preta" = janela do youtube-dl
 	AfxMessageBox(L"A \"janela preta\" vai fechar sozinha. Minimize-a se desejar.\nO tempo para terminar depende da velocidade de sua Internet.");
 	// Desabilita o botão Baixar para impedir que o usuário fique criando vários processos de youtube-dl
 	GetDlgItem(IDOK)->EnableWindow(FALSE);
+	// Mantém foco na caixa de texto para o endereço da Internet
+	HWND hWnd;
+	GetDlgItem(IDC_EDIT1, &hWnd);
+	::PostMessage(GetSafeHwnd(), WM_NEXTDLGCTL, (WPARAM)hWnd, TRUE);
 }
 
 
 void CyoutubedlGUIbrDlg::OnBnClickedButton1()
 {
 	// TODO: Adicione seu código de manipulador de notificações de controle aqui
-	AfxMessageBox(L"youtube-dl-GUI-br_ver_1.1\nMais uma interface grafica bem simples para o youtube-dl\n\nCodecs: https://www.ffmpeg.org \nAlgoritimo: https://github.com/ytdl-org/youtube-dl \n\nGUI: https://github.com/MarcoBRSP/youtube-dl-GUI-br \nContato: marcoadeoli@outlook.com \n\nCompilado com Microsoft Visual Studio Community 2019 Ver. 16.4.5");
+	AfxMessageBox(L"youtube-dl-GUI-br_ver_1.2\nMais uma interface grafica bem simples para o youtube-dl\n\nCodecs: https://www.ffmpeg.org \nAlgoritimo: https://github.com/ytdl-org/youtube-dl \n\nGUI: https://github.com/MarcoBRSP/youtube-dl-GUI-br \nContato: marcoadeoli@outlook.com \n\nCompilado com Microsoft Visual Studio Community 2019 Ver. 16.4.5");
 	// Mantém foco na caixa de texto para o endereço da Internet
 	HWND hWnd;
 	GetDlgItem(IDC_EDIT1, &hWnd);
@@ -230,8 +242,12 @@ void CyoutubedlGUIbrDlg::OnBnClickedButton2()
 	// Lista?
 	CButton* m_ctlCheck2 = (CButton*)GetDlgItem(IDC_CHECK2);
 	m_ctlCheck2->SetCheck(0); // (de)seleciona
-	// Limpa caixa de seleção
-	url = _T("");
+	// Legenda?
+	CButton* m_ctlCheck3 = (CButton*)GetDlgItem(IDC_CHECK3);
+	m_ctlCheck3->SetCheck(0); // (de)seleciona
+	// Limpa caixas de edição de texto
+	m_url = _T("");
+	m_pasta = _T("");
 	UpdateData(FALSE);
 	// Habilita o botão Baixar caso o usuário queira baixar outro arquivo
 	GetDlgItem(IDOK)->EnableWindow(TRUE);
@@ -242,7 +258,26 @@ void CyoutubedlGUIbrDlg::OnBnClickedButton2()
 }
 
 
-void CyoutubedlGUIbrDlg::OnBnClickedCheck1()
+void CyoutubedlGUIbrDlg::OnBnClickedCheck1() // Audio
+{
+	// TODO: Adicione seu código de manipulador de notificações de controle aqui
+	// Uma variável para dois controles. Checa se o usuário selecionou apenas m_audio e/ou m_lista
+	bool foiChecado;
+	// Audio?
+	CButton* m_ctlCheck1 = (CButton*)GetDlgItem(IDC_CHECK1);
+	foiChecado = (m_ctlCheck1->GetCheck());
+	if (foiChecado == true) {
+		CButton* m_ctlCheck3 = (CButton*)GetDlgItem(IDC_CHECK3);
+		m_ctlCheck3->SetCheck(0); // (de)seleciona
+	}
+	// Mantém foco na caixa de texto para o endereço da Internet
+	HWND hWnd;
+	GetDlgItem(IDC_EDIT1, &hWnd);
+	::PostMessage(GetSafeHwnd(), WM_NEXTDLGCTL, (WPARAM)hWnd, TRUE);
+}
+
+
+void CyoutubedlGUIbrDlg::OnBnClickedCheck2() // Lista
 {
 	// TODO: Adicione seu código de manipulador de notificações de controle aqui
 	// Mantém foco na caixa de texto para o endereço da Internet
@@ -252,9 +287,18 @@ void CyoutubedlGUIbrDlg::OnBnClickedCheck1()
 }
 
 
-void CyoutubedlGUIbrDlg::OnBnClickedCheck2()
+void CyoutubedlGUIbrDlg::OnBnClickedCheck3() // Legenda
 {
 	// TODO: Adicione seu código de manipulador de notificações de controle aqui
+	// Uma variável para dois controles. Checa se o usuário selecionou apenas m_audio e/ou m_lista
+	bool foiChecado;
+	// Legenda?
+	CButton* m_ctlCheck3 = (CButton*)GetDlgItem(IDC_CHECK3);
+	foiChecado = (m_ctlCheck3->GetCheck());
+	if (foiChecado == true) {
+		CButton* m_ctlCheck1 = (CButton*)GetDlgItem(IDC_CHECK1);
+		m_ctlCheck1->SetCheck(0); // (de)seleciona
+	}
 	// Mantém foco na caixa de texto para o endereço da Internet
 	HWND hWnd;
 	GetDlgItem(IDC_EDIT1, &hWnd);

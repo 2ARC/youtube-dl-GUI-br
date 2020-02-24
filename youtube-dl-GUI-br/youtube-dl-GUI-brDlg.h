@@ -33,11 +33,15 @@ protected:
 	DECLARE_MESSAGE_MAP()
 public:
 	afx_msg void OnBnClickedOk();
-	CString url;
-	CButton Audio;
-	CButton Lista;
+	CString m_url;
+	CButton m_audio;
+	CButton m_lista;
 	afx_msg void OnBnClickedButton1();
 	afx_msg void OnBnClickedButton2();
 	afx_msg void OnBnClickedCheck1();
 	afx_msg void OnBnClickedCheck2();
+	// Nome da subpasta que conterá o(s) arquivo(s)
+	CString m_pasta;
+	CButton m_legenda;
+	afx_msg void OnBnClickedCheck3();
 };
