@@ -181,22 +181,25 @@ void CyoutubedlGUIbrDlg::OnBnClickedOk()
 	// TODO: Adicione seu código de manipulador de notificações de controle aqui
 	// Passa o que foi colado no controle (p.ex: youtube.com) para à variável mebro do controle
 	UpdateData(TRUE);
-	// String contendo o que eu acredito ser o mínimo para um uso suave do programa
-	CString str = _T(" --restrict-filenames --mark-watched --no-warnings --ignore-errors --console-title --youtube-skip-dash-manifest -o \"\\");
-	if (m_pasta == _T(""))
-	{
-		m_pasta = _T("Arquivos_Baixados");
-	}
-	str += m_pasta; // Subm_pasta
-	str += _T("\\%(title)s.%(ext)s\" ");
+	// String contendo os argumentos a serem passados ao youtube-dl
+	CString str = _T("");
 	// Uma variável para dois controles. Checa se o usuário selecionou apenas m_audio e/ou m_lista
 	bool foiChecado;
 	// Audio?
 	CButton* m_ctlCheck1 = (CButton*)GetDlgItem(IDC_CHECK1);
 	foiChecado = (m_ctlCheck1->GetCheck());
 	if (foiChecado == true) {
-		str += " -x --m_audio-format mp3 ";
+		str += " -x --audio-format mp3 ";
 	}
+	// Atualiza a variável membro a partir da variável temporária
+	str += m_url;
+	str += " -o \"\\";
+	if (m_pasta == _T(""))
+	{
+		m_pasta = _T("Arquivos_Baixados");
+	}
+	str += m_pasta; // Subm_pasta
+	str += _T("\\%(title)s.%(ext)s\" ");
 	// Lista?
 	CButton* m_ctlCheck2 = (CButton*)GetDlgItem(IDC_CHECK2);
 	foiChecado = (m_ctlCheck2->GetCheck());
@@ -212,12 +215,14 @@ void CyoutubedlGUIbrDlg::OnBnClickedOk()
 	if (foiChecado == true) {
 		str += " --write-auto-sub --sub-format srt ";
 	}
-	// Atualiza a variável membro a partir da variável temporária
-	str += m_url;
+	// Debug: Retirar comentário abaixo
+	//m_pasta = str; UpdateData(FALSE);
+	// Acrescenta o que eu acredito ser o mais essencial
+	str += " --restrict-filenames --mark-watched --no-warnings --ignore-errors --console-title --youtube-skip-dash-manifest";
 	// Passa os argumentos e executa via terminal o programa youtube-dl.exe
-	ShellExecute(NULL, _T("open"), _T("youtube-dl.exe"), str, _T(""), SW_SHOW);
+	ShellExecute(NULL, _T("open"), _T("youtube-dl"), str, _T("TESTE"), SW_SHOW);
 	// Avisa para não fechar a "tela preta" = janela do youtube-dl
-	AfxMessageBox(L"A \"janela preta\" vai fechar sozinha. Minimize-a se desejar.\nO tempo para terminar depende da velocidade de sua Internet.");
+	AfxMessageBox(L"A \"janela escura\" vai fechar sozinha. Minimize-a se desejar.\nO tempo para terminar depende da velocidade de sua Internet.");
 	// Desabilita o botão Baixar para impedir que o usuário fique criando vários processos de youtube-dl
 	GetDlgItem(IDOK)->EnableWindow(FALSE);
 	// Mantém foco na caixa de texto para o endereço da Internet
